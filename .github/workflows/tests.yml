@@ -1,0 +1,42 @@
+name: Calculator CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc clang make valgrind cppcheck
+
+    - name: Clean project
+      run: make clean
+
+    - name: Static Analysis (cppcheck)
+      run: make check
+
+    - name: Code Style Check
+      run: make format-check
+
+    - name: Run Auto-Tests
+      run: |
+        make run_math_test
+        ./run_math_test
+
+    - name: Memory Leak Check (Valgrind)
+      run: make valgrind_test
+
+    - name: Run Fuzzer Check
+      run: |
+        mkdir -p fuzz/corpus
+        make fuzz_calculator
